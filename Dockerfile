@@ -32,8 +32,8 @@ COPY ./backend-not-found.html /var/www/html/backend-not-found.html
 ADD ssl.tar /ssl-default/
 COPY nginx.conf /etc/nginx/nginx.conf.template
 # COPY proxy.locations /etc/nginx/proxy.locations.template
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x docker-entrypoint.sh /docker-entrypoint.sh
+COPY --chmod=0744 docker-entrypoint.sh /docker-entrypoint.sh
+# RUN chmod +x docker-entrypoint.sh /docker-entrypoint.sh
 
 # USER nginx
 
