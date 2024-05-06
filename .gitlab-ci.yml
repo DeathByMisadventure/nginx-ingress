@@ -1,0 +1,55 @@
+image: registry.stratagemgroup.com/stratagem-infrastructure/gitlab/dind:20.10.12-dind-stratagem
+
+# Include the neccessary code and container scanning tamplates
+include:
+  - template: Jobs/Dependency-Scanning.latest.gitlab-ci.yml
+  - template: Jobs/SAST.latest.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+  - template: Jobs/SAST-IaC.gitlab-ci.yml
+  - template: Jobs/Container-Scanning.gitlab-ci.yml
+    rules:
+      - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+variables:
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_TLS_VERIFY: 1
+  DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+  DOCKER_DRIVER: overlay2
+  DOCKER_HOST: "tcp://docker:2376"
+  GIT_SUBMODULE_STRATEGY: recursive
+  CS_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+
+services:
+  - name: registry.stratagemgroup.com/stratagem-infrastructure/gitlab/dind:20.10.12-dind-stratagem
+    alias: docker
+
+stages:
+  - image_build
+  - test
+  - image_deploy
+
+# This before script template is required for the docker login information
+.before_script_template:
+  before_script:
+    # Wait for docker daemon to be ready
+    - i=0; while [ "$i" -lt 12 ]; do docker info && break; sleep 5; i=$(( i + 1 )) ; done
+    - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+
+image_build:
+  extends: .before_script_template
+  stage: image_build
+  script:
+    - echo $CS_IMAGE
+    - docker build -t $CS_IMAGE .
+    - docker push $CS_IMAGE
+
+image_deploy:
+  extends: .before_script_template
+  stage: image_deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - docker pull $CS_IMAGE
+    - docker tag $CS_IMAGE $CI_REGISTRY_IMAGE:$CI_PIPELINE_IID
+    - docker tag $CS_IMAGE $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE --all-tags

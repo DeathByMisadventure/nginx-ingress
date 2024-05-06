@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\chad.amberg\AppData\Local\Microsoft\WindowsApps\kompose.exe convert -f .\sample-compose.yaml
+    kompose.version: 1.26.0 (40646f47)
+  labels:
+    io.kompose.service: sslgateway
+  name: sslgateway
+spec:
+  ports:
+    - name: "443"
+      port: 443
+      targetPort: 443
+  selector:
+    io.kompose.service: sslgateway
+status:
+  loadBalancer: {}

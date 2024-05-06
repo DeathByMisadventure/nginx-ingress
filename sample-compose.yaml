@@ -1,0 +1,17 @@
+version: "3"
+services:
+  sslgateway:
+    container_name: sslgateway
+    image: registry.stratagemgroup.com/lumos/tools/hardened/nginx-proxy:latest
+    ports:
+      - "443:443"
+    environment:
+      HTTPS_PORT: 443
+      # LOCATIONS must have as the first entry the base URL for / queries then semicolon separated additional URLs and request paths
+      # IE: https://arka.org/; https://google.com/ googleit
+      # would have https://sslgateway/googleit go to google
+      LOCATIONS: https://arka.org/; https://www.google.com/ googleit; https://chadamberg.com/ chad
+    volumes:
+      - "./ssl:/ssl"
+      - "./nginx:/etc/nginx/conf.d"
+    restart: always

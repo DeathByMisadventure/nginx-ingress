@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\chad.amberg\AppData\Local\Microsoft\WindowsApps\kompose.exe convert -f .\sample-compose.yaml
+    kompose.version: 1.26.0 (40646f47)
+  labels:
+    io.kompose.service: sslgateway
+  name: sslgateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: sslgateway
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\chad.amberg\AppData\Local\Microsoft\WindowsApps\kompose.exe convert -f .\sample-compose.yaml
+        kompose.version: 1.26.0 (40646f47)
+      labels:
+        io.kompose.service: sslgateway
+    spec:
+      containers:
+        - env:
+            - name: HTTPS_PORT
+              value: "443"
+            - name: LOCATIONS
+              value: https://arka.org/; https://www.google.com/ googleit; https://chadamberg.com/ chad
+          image: registry.stratagemgroup.com/lumos/tools/hardened/nginx-proxy:latest
+          name: sslgateway
+          ports:
+            - containerPort: 443
+          resources: {}
+          volumeMounts:
+            - mountPath: /ssl
+              name: sslgateway-claim0
+      restartPolicy: Always
+      volumes:
+        - name: sslgateway-claim0
+          persistentVolumeClaim:
+            claimName: sslgateway-claim0
+status: {}
