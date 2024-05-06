@@ -30,7 +30,7 @@ Container volume:
 ## Container Build
 
 ```bash
-docker build -t registry.stratagemgroup.com/lumos/tools/hardened/nginx-proxy:latest
+docker build -t nginx-ingress:latest
 ```
 
 ## Sample ENV file
@@ -46,7 +46,7 @@ Utilize proxy.locations as a template for each location.  At least the root "/" 
 ## Sample Container Run
 
 ```bash
-docker run -p 443:443 -v ${PWD}/ssl:/ssl --env-file sample.env registry.stratagemgroup.com/lumos/tools/hardened/nginx-proxy:latest
+docker run -p 443:443 -v ${PWD}/ssl:/ssl -v ${PWD}/conf:/etc/nginx/conf.d --env-file sample.env nginx-ingress:latest
 ```
 
 ## Sample Docker Compose
@@ -56,12 +56,11 @@ version: '3'
 services:
   sslgateway:
     container_name: sslgateway
-    image: registry.stratagemgroup.com/lumos/tools/hardened/nginx-proxy:latest
+    image: nginx-proxy:latest
     ports:
       - '443:443'
     environment:
       - HTTPS_PORT=443
-      - LOCATIONS=https://arka.org
     volumes:
       - './ssl:/ssl'
       - "./nginx:/etc/nginx/conf.d"
